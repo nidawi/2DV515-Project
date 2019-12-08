@@ -1,0 +1,11 @@
+{
+  "name": "env",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "py app.py"
+  },
+  "author": "",
+  "license": "ISC"
+}
