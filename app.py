@@ -5,9 +5,9 @@ from models.TastyWikiURL import TastyWikiURL
 from models.WikiTextSelectorStrategy import WikiTextSelectorStrategy
 from models.Chewable import Chewable
 
-ROOT_URL = "https://wikipedia.org/wiki/Cat"
+ROOT_URL = "https://wikipedia.org/wiki/Computer_programming"
 DUMP_DIR = "./pages"
-MAX_PAGES = 5
+MAX_PAGES = 500
 DEBUG = True
 
 async def main():
@@ -26,7 +26,7 @@ async def main():
       text_strat=textStrategy
       )
     
-    print(f"Crawled pages have been saved. A total of {snake.get_total_count()} pages were crawled in {snake.get_completion_time()} seconds.")
+    print(f"Crawled pages have been saved to {DUMP_DIR}. A total of {snake.get_total_count()} pages were crawled in {snake.get_completion_time()} seconds.")
 
 if __name__ == "__main__":
   async_loop = asyncio.get_event_loop()

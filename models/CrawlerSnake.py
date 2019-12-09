@@ -41,7 +41,6 @@ class CrawlerSnake(DepthObserver, object):
     self.__current_depth = 1
 
     # Construct crawl url
-    # Todo: do this better
     origin = kwargs[ORIGIN_ID] if ORIGIN_ID in kwargs else None
     self.__page_url, self.__partial_url, self.__name = self.__parse_url(origin, url)
 
@@ -67,15 +66,20 @@ class CrawlerSnake(DepthObserver, object):
     self.__raw_text = self.__get_text()
 
     # If dir has been specified, dump links and text
-    if self.__dir and self.__text_strategy:
+    if self.__dir:
       await self.__dump_page_contents()
 
     # Crawl all links contained on the page using asyncio wait/gather
+
     # First, we ask for the current depth
-    depth = self.__depth_observer.get_current_depth()
+    depth = self.__depth_observer._get_current_depth()
+
+    # We select an appropriate amount of links to crawl based on depth
     links_to_crawl = list(self.__raw_links)[0:self.__max - depth]
+
     # Then we update the depth based on our links
-    self.__depth_observer.update_depth(len(links_to_crawl))
+    self.__depth_observer._update_depth(len(links_to_crawl))
+
     # Then we recursively crawl whatever links remain
     self.__links = await asyncio.gather(
       *[CrawlerSnake(
@@ -152,11 +156,17 @@ class CrawlerSnake(DepthObserver, object):
     Extracts text from the page based on element type.
     """
     raw_text = self.__html.body
-    text = self.__text_strategy.get_text(raw_text)
+    text = self.__text_strategy.get_text(raw_text) if self.__text_strategy else raw_text.get_text()
 
     return text
 
   async def __dump_page_contents(self) -> None:
+    await asyncio.gather(
+      self.__dump_links(),
+      self.__dump_text()
+    )
+
+  async def  __dump_links(self) -> None:
     # We need to dump links into /links
     links_dir = f"{self.__dir}/links/{self.__name}"
     async with aiofile.AIOFile(links_dir, "w+") as file:
@@ -164,6 +174,7 @@ class CrawlerSnake(DepthObserver, object):
       for link in self.__raw_links:
         await writer(f"{link}\n")
 
+  async def __dump_text(self) -> None:
     # and words into /words
     words_dir = f"{self.__dir}/words/{self.__name}"
     async with aiofile.AIOFile(words_dir, "w+") as file:
@@ -175,8 +186,8 @@ class CrawlerSnake(DepthObserver, object):
       print(message)
 
   # Depth Observer (recursive)
-  def get_current_depth(self) -> None:
+  def _get_current_depth(self) -> None:
     return min(self.__current_depth, self.__max)
 
-  def update_depth(self, amount: int) -> None:
+  def _update_depth(self, amount: int) -> None:
     self.__current_depth += amount
