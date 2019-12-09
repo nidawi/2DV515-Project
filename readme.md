@@ -17,22 +17,22 @@
 > I then started at /wiki/Cat and crawled another 100 pages.
 > Finally, I started at /wiki/Animal and crawled another 100 pages.
 
-> Note: there are still some imperfections in the text extraction process.
+> Note: there may still be some imperfections in the text extraction process.
 
 #### Crawling result (final 14 lines; 500 pages @ Computer_Programming)
-![Crawling result (final 14 lines; 500 pages @ Computer_Programming)](https://i.gyazo.com/74d523cb93fd143f7200449da251473d.png)
+![Crawling result (final 14 lines; 500 pages @ Computer_Programming)](https://i.gyazo.com/6b8344da9d33f8641f162c3784676411.png)
 
 #### Crawling result (final 14 lines; 100 pages @ Cat)
-![Crawling result (final 14 lines; 100 pages @ Cat)](https://i.gyazo.com/ba30dd1f052d3fc82ea538e4c6976b8c.png)
+![Crawling result (final 14 lines; 100 pages @ Cat)](https://i.gyazo.com/ddefd9d0aad0f949c7b14bc0fff38bc1.png)
 
 #### Crawling result (final 14 lines; 100 pages @ Animal)
-![Crawling result (final 14 lines; 100 pages @ Animal)](https://i.gyazo.com/4aceda49195561e6eae6f2caae55cef5.png)
+![Crawling result (final 14 lines; 100 pages @ Animal)](https://i.gyazo.com/621856956343628725669e8f7648aa54.png)
 
 #### Links example (in folder /pages/links)
-![Links example (in folder /pages/links)](https://i.gyazo.com/c4f3f1622bd7fa428d0175b259bab00f.png)
+![Links example (in folder /pages/links)](https://i.gyazo.com/c320580cde65a678132e431a1d8770e5.png)
 
 #### Words example (in folder /pages/words)
-![Words example (in folder /pages/words)](https://i.gyazo.com/21d79339b93c6138e85827fbb256ef25.png)
+![Words example (in folder /pages/words)](https://i.gyazo.com/7ec69a2fe0a968560fc77f56e6fcfea8.png)
 
 #### Example search for "coffee"
-![Example search for "coffee"](https://i.gyazo.com/1535fe5624fc224875248eed53fb79b0.png)
+![Example search for "coffee"](https://i.gyazo.com/bf368eaaf73de717ffb655b88c34c85d.png)

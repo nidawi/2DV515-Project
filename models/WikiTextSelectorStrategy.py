@@ -14,12 +14,17 @@ class WikiTextSelectorStrategy(TextSelectorStrategy):
     # and then each paragraph is its own separate <p>-tag.
     article_div = "mw-content-text"
     paragraph_elem = "p"
-
-    # todo: does not deal properly with elements nested within p-tags such as:
-    # <sup class="noprint Inline-Template Template-Fact" style="white-space:nowrap;">&#91;<i><a href="/wiki/Wikipedia:Citation_needed" title="Wikipedia:Citation needed"><span title="This claim needs references to reliable sources. (January 2019)">citation needed</span>
+    sup_tag = "sup"
 
     div = soup.find(id=article_div) # extract div
-    paragraphs = list(map(lambda x : x.get_text().lower(), div.find_all(paragraph_elem))) # extract text from all p-elements
+    p_elems = div.find_all(paragraph_elem) # extract p elements
+
+    # get rid of wikipedia-specific nested tags that disrupt text results
+    for p in p_elems:
+      for sup in p.find_all(sup_tag):
+        sup.decompose()
+
+    paragraphs = list(map(lambda x : x.get_text().lower(), p_elems)) # extract text from all p-elements
     paragraphs_text = list(map(lambda x : re.sub(r"(\[\d+\]|[^a-z0-9åäö \-])", "", x), paragraphs)) # replace all invalid characters (preserves åäö)
     only_text = " ".join(para for para in paragraphs_text) # join the paragraphs into a single text
     fixed_text = re.sub(r" {2,}", " ", only_text) # remove all double spaces
