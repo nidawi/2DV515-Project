@@ -2,17 +2,19 @@ import asyncio
 import aiohttp
 from models.CrawlerSnake import CrawlerSnake
 from models.TastyWikiURL import TastyWikiURL
+from models.AlreadyEaten import AlreadyEaten
 from models.WikiTextSelectorStrategy import WikiTextSelectorStrategy
 from models.Chewable import Chewable
 
-ROOT_URL = "https://wikipedia.org/wiki/Computer_programming"
+ROOT_URL = "https://wikipedia.org/wiki/Video_Games"
 DUMP_DIR = "./pages"
-MAX_PAGES = 500
+MAX_PAGES = 250
 DEBUG = True
 
 async def main():
   chewableStrategy = Chewable(ROOT_URL, "*") # Checks if the root's robots.txt allows us (*) to crawl their pages.
   tastyUrlStrategy = TastyWikiURL() # Checks if the page is a valid Wiki link, /wiki/...
+  alreadyEaten = AlreadyEaten() # Verifies that the same page isn't crawled twice (optional since you may not want this)
   textStrategy = WikiTextSelectorStrategy() # Collects and returns words from a wikipedia article
 
   async with aiohttp.ClientSession() as session:
@@ -22,7 +24,7 @@ async def main():
       dir=DUMP_DIR,
       max=MAX_PAGES,
       session=session,
-      link_strats=[tastyUrlStrategy, chewableStrategy],
+      link_strats=[tastyUrlStrategy, alreadyEaten, chewableStrategy],
       text_strat=textStrategy
       )
     

@@ -148,8 +148,10 @@ class CrawlerSnake(DepthObserver, object):
     basic_filter = filter(lambda x : x is not None, hrefs)
     # Check the potential link with all strategies.
     valid = filter(lambda x : all(strat.is_tasty(x) for strat in self.__selection_strategies), basic_filter)
+    # Perform final validations: not self, not duplicate
+    not_self = filter(lambda x : x != self.__partial_url, valid)
 
-    return set(valid)
+    return set(not_self)
 
   def __get_text(self) -> str:
     """

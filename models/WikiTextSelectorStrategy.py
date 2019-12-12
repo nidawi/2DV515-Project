@@ -27,6 +27,6 @@ class WikiTextSelectorStrategy(TextSelectorStrategy):
     paragraphs = list(map(lambda x : x.get_text().lower(), p_elems)) # extract text from all p-elements
     paragraphs_text = list(map(lambda x : re.sub(r"(\[\d+\]|[^a-z0-9åäö \-])", "", x), paragraphs)) # replace all invalid characters (preserves åäö)
     only_text = " ".join(para for para in paragraphs_text) # join the paragraphs into a single text
-    fixed_text = re.sub(r" {2,}", " ", only_text) # remove all double spaces
+    fixed_text = re.sub(r" {2,}", " ", only_text).strip() # remove all double spaces + trailing / preceding spaces
 
     return fixed_text
