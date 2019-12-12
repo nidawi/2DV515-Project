@@ -15,6 +15,8 @@ class WikiTextSelectorStrategy(TextSelectorStrategy):
     article_div = "mw-content-text"
     paragraph_elem = "p"
     sup_tag = "sup"
+    annotation_tag = "annotation"
+    math_tag = "math"
 
     div = soup.find(id=article_div) # extract div
     p_elems = div.find_all(paragraph_elem) # extract p elements
@@ -23,6 +25,12 @@ class WikiTextSelectorStrategy(TextSelectorStrategy):
     for p in p_elems:
       for sup in p.find_all(sup_tag):
         sup.decompose()
+      
+      for anno in p.find_all(annotation_tag):
+        anno.decompose()
+
+      for math in p.find_all(math_tag):
+        math.decompose()
 
     paragraphs = list(map(lambda x : x.get_text().lower(), p_elems)) # extract text from all p-elements
     paragraphs_text = list(map(lambda x : re.sub(r"(\[\d+\]|[^a-z0-9åäö \-])", "", x), paragraphs)) # replace all invalid characters (preserves åäö)
