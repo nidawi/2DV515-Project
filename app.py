@@ -6,9 +6,9 @@ from models.AlreadyEaten import AlreadyEaten
 from models.WikiTextSelectorStrategy import WikiTextSelectorStrategy
 from models.Chewable import Chewable
 
-ROOT_URL = "https://wikipedia.org/wiki/Video_Games"
+ROOT_URL = "https://wikipedia.org/wiki/Computer_programming"
 DUMP_DIR = "./pages"
-MAX_PAGES = 250
+MAX_PAGES = 400
 DEBUG = True
 
 async def main():
@@ -24,7 +24,8 @@ async def main():
       dir=DUMP_DIR,
       max=MAX_PAGES,
       session=session,
-      link_strats=[tastyUrlStrategy, alreadyEaten, chewableStrategy],
+      link_strats=[tastyUrlStrategy, chewableStrategy],
+      selection_strats=[alreadyEaten],
       text_strat=textStrategy
       )
     

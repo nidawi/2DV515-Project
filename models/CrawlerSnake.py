@@ -11,12 +11,16 @@ from models.DepthObserver import DepthObserver
 
 ORIGIN_ID = "origin"
 SESSION_ID = "session"
-SELECTION_STRAT_ID = "link_strats"
+LINK_SELECTION_STRATS_ID = "link_strats"
+CRAWL_SELECTION_STRATS_ID = "selection_strats"
 TEXT_STRAT_ID = "text_strat"
 OBSERVER_ID = "observer"
 DIR_ID = "dir"
 MAX_ID = "max"
 DEBUG_ID = "debug"
+
+LINKS_FOLDER_NAME = "Links"
+WORDS_FOLDER_NAME = "Words"
 
 # Experimental recursive web crawler
 class CrawlerSnake(DepthObserver, object):
@@ -47,7 +51,8 @@ class CrawlerSnake(DepthObserver, object):
     # Extract kwargs
     # todo: some of these do not need to be instance variables
     self.__session = kwargs[SESSION_ID] if SESSION_ID in kwargs else aiohttp.ClientSession()
-    self.__selection_strategies = kwargs[SELECTION_STRAT_ID] if SELECTION_STRAT_ID in kwargs else []
+    self.__link_selection_strategies = kwargs[LINK_SELECTION_STRATS_ID] if LINK_SELECTION_STRATS_ID in kwargs else []
+    self.__crawl_selection_strategies = kwargs[CRAWL_SELECTION_STRATS_ID] if CRAWL_SELECTION_STRATS_ID in kwargs else []
     self.__text_strategy = kwargs[TEXT_STRAT_ID] if TEXT_STRAT_ID in kwargs else None
     self.__depth_observer = kwargs[OBSERVER_ID] if OBSERVER_ID in kwargs else self
     self.__dir = kwargs[DIR_ID] if DIR_ID in kwargs else None
@@ -70,15 +75,7 @@ class CrawlerSnake(DepthObserver, object):
       await self.__dump_page_contents()
 
     # Crawl all links contained on the page using asyncio wait/gather
-
-    # First, we ask for the current depth
-    depth = self.__depth_observer._get_current_depth()
-
-    # We select an appropriate amount of links to crawl based on depth
-    links_to_crawl = list(self.__raw_links)[0:self.__max - depth]
-
-    # Then we update the depth based on our links
-    self.__depth_observer._update_depth(len(links_to_crawl))
+    links_to_crawl = self.__get_links_to_crawl()
 
     # Then we recursively crawl whatever links remain
     self.__links = await asyncio.gather(
@@ -90,7 +87,8 @@ class CrawlerSnake(DepthObserver, object):
         observer=self.__depth_observer,
         max=self.__max,
         dir=self.__dir,
-        link_strats=self.__selection_strategies,
+        link_strats=self.__link_selection_strategies,
+        selection_strats=self.__crawl_selection_strategies,
         text_strat=self.__text_strategy
         ) for link in links_to_crawl]
     )
@@ -140,18 +138,41 @@ class CrawlerSnake(DepthObserver, object):
     """
       Returns a set of all links contained in the page as strings.
 
-      This method uses the selection strategies.
+      This method uses the link selection strategies.
     """
     # I think the performance is pretty bad here.
     links = self.__html.find_all("a")
     hrefs = map(lambda x : x.get("href"), links)
     basic_filter = filter(lambda x : x is not None, hrefs)
     # Check the potential link with all strategies.
-    valid = filter(lambda x : all(strat.is_tasty(x) for strat in self.__selection_strategies), basic_filter)
-    # Perform final validations: not self, not duplicate
+    valid = filter(lambda x : all(strat.is_tasty(x) for strat in self.__link_selection_strategies),
+      basic_filter)
+    # Perform final validations: not self + not duplicate
     not_self = filter(lambda x : x != self.__partial_url, valid)
+    not_duplicate = { link.casefold() : link for link in not_self }
 
-    return set(not_self)
+    return set(not_duplicate.values())
+
+  def __get_links_to_crawl(self) -> List[str]:
+    """
+    Returns a list of links to crawl as strings.
+
+    This method uses the crawl selection strategies.
+    """
+    # First, we ask for the current depth
+    depth = self.__depth_observer._get_current_depth()
+    # We use our strategies to select links of interest
+    links_of_interest = list(filter(lambda x : all(strat.is_tasty(x) for strat in self.__crawl_selection_strategies),
+      list(self.__raw_links)))
+    # We select an appropriate amount of links to crawl based on depth
+    links_to_crawl = links_of_interest[0:self.__max - depth]
+    # Then we update the depth based on our links
+    crawl_count = len(links_to_crawl)
+    self.__depth_observer._update_depth(crawl_count)
+
+    self.__debug(f"{self.__name} selected {crawl_count} out of {len(links_of_interest)} potential links ({len(self.__raw_links)} total). Current depth: {depth}; new depth: {self.__depth_observer._get_current_depth()}")
+
+    return links_to_crawl
 
   def __get_text(self) -> str:
     """
@@ -170,15 +191,15 @@ class CrawlerSnake(DepthObserver, object):
 
   async def  __dump_links(self) -> None:
     # We need to dump links into /links
-    links_dir = f"{self.__dir}/links/{self.__name}"
+    links_dir = f"{self.__dir}/{LINKS_FOLDER_NAME}/{self.__name}"
     async with aiofile.AIOFile(links_dir, "w+") as file:
       writer = aiofile.Writer(file)
-      for link in self.__raw_links:
-        await writer(f"{link}\n")
+      output = "\n".join(self.__raw_links)
+      await writer(output)
 
   async def __dump_text(self) -> None:
     # and words into /words
-    words_dir = f"{self.__dir}/words/{self.__name}"
+    words_dir = f"{self.__dir}/{WORDS_FOLDER_NAME}/{self.__name}"
     async with aiofile.AIOFile(words_dir, "w+") as file:
       writer = aiofile.Writer(file)
       await writer(self.__raw_text)
